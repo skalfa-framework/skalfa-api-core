@@ -1,6 +1,6 @@
 import fs from 'fs';
 import path from 'path';
-import { registry } from './registry.util';
+import { registry } from '@utils/registry';
 
 
 

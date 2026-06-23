@@ -1,5 +1,5 @@
 import knex, { Knex } from 'knex'
-import { conversion } from './conversion.util'
+import { conversion } from '@utils/conversion'
 
 // ==============================
 // ## Driver resolver

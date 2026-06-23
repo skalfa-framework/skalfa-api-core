@@ -1,7 +1,7 @@
 import fs from "fs";
 import path from "path";
 import { Elysia } from "elysia";
-import { db } from "@utils/db.util";
+import { db } from "@utils";
 
 
 

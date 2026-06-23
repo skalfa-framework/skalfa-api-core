@@ -1,7 +1,7 @@
 import crypto from 'crypto'
 import bcrypt from "bcrypt";
 import { db } from '@utils'
-import { registry } from './registry.util'
+import { registry } from '@utils/registry'
 
 
 

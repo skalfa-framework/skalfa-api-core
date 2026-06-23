@@ -1,6 +1,6 @@
 {
   "name": "@kava/kava-api-core",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Core utility functions for Kava API framework.",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
