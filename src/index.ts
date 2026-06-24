@@ -8,9 +8,11 @@ export * from "./route";
 export * from "./storage";
 export * from "./validation";
 export * from "./mail";
+export * from "./notification";
 export * from "./logger";
 export * from "./registry";
 export * from "./commands/cli";
+export { DAMigration } from "./commands/runner/da-migration";
 
 declare module "knex" {
   namespace Knex {
