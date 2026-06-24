@@ -27,14 +27,14 @@ jobs:
       - name: Publish if version bumped
         run: |
           LOCAL_VER=$(node -p "require('./package.json').version")
-          NPM_VER=$(npm view @kava/kava-api-core version 2>/dev/null || echo "0.0.0")
+          NPM_VER=$(npm view @skalfa/skalfa-api-core version 2>/dev/null || echo "0.0.0")
           if [ "$LOCAL_VER" != "$NPM_VER" ]; then
-            echo "Publishing @kava/kava-api-core $LOCAL_VER (Registry version: $NPM_VER)"
+            echo "Publishing @skalfa/skalfa-api-core $LOCAL_VER (Registry version: $NPM_VER)"
             bun install
             npm run build
             npm publish --access public
           else
-            echo "@kava/kava-api-core is up to date ($LOCAL_VER)"
+            echo "@skalfa/skalfa-api-core is up to date ($LOCAL_VER)"
           fi
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

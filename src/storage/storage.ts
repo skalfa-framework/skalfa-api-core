@@ -1,7 +1,7 @@
 import fs from "fs";
 import path from "path";
 import { Elysia } from "elysia";
-import { db } from "@utils";
+import { db } from "@skalfa/skalfa-orm";
 
 
 
@@ -48,6 +48,11 @@ export const storage = (app: Elysia) => app.get("/storage/*", async ({ params, s
         return { error: "File not found" };
       }
 
+      if (!db) {
+        set.status = 404;
+        return { error: "File not found" };
+      }
+
       const file = await db("storages").where({ path: requestedPath, disk: "private" }).first()
 
       if (!file) {
@@ -59,7 +64,7 @@ export const storage = (app: Elysia) => app.get("/storage/*", async ({ params, s
 
       if (!hasAccess) {
         hasAccess = await db("storage_permissions").where("storage_id", file.id)
-          .andWhere((q) => {
+          .andWhere((q: any) => {
             q.where("user_id", user.id)
             .orWhere("role_id", user.role_id)
           })

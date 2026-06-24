@@ -1,7 +1,7 @@
 {
-  "name": "@kava/kava-api-core",
-  "version": "1.0.2",
-  "description": "Core utility functions for Kava API framework.",
+  "name": "@skalfa/skalfa-api-core",
+  "version": "1.0.3",
+  "description": "Core utility functions for Skalfa API framework.",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
@@ -15,12 +15,12 @@
   "author": "",
   "license": "UNLICENSED",
   "dependencies": {
+    "@skalfa/skalfa-orm": "file:../skalfa-orm",
     "bcrypt": "^6.0.0",
+    "commander": "^12.1.0",
     "dotenv": "^17.2.2",
     "elysia": "latest",
-    "knex": "^3.1.0",
     "nodemailer": "^7.0.9",
-    "pg": "^8.16.3",
     "validator": "^13.15.15"
   },
   "devDependencies": {

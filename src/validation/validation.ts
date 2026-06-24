@@ -1,5 +1,5 @@
 import validator from "validator"
-import { db } from "@utils"
+import { db } from "@skalfa/skalfa-orm"
 
 // ==========================>
 // ## Validation: Rules of validation
@@ -227,6 +227,10 @@ async function checkRules({ field, value, rules, data, errors } : { field: strin
 
       // === DATABASE VALIDATION ===
       case "unique": {
+        if (!db) {
+          console.warn(`[Validation Warning] "unique" rule skipped on field "${field}" because database is not configured/installed.`);
+          break;
+        }
         const [table, column, exceptId] = param!.split(",")
         const query = db.table(table).where(column, value)
         if (exceptId) query.whereNot("id", exceptId)
@@ -234,16 +238,20 @@ async function checkRules({ field, value, rules, data, errors } : { field: strin
         if (existing) {
           addError(errors, field, `${field} sudah digunakan`)
         }
-        break
+        break;
       }
 
       case "exists": {
+        if (!db) {
+          console.warn(`[Validation Warning] "exists" rule skipped on field "${field}" because database is not configured/installed.`);
+          break;
+        }
         const [table, column] = param!.split(",")
         const existing = await db.table(table).where(column, value).first()
         if (!existing) {
           addError(errors, field, `${field} tidak ditemukan di ${table}`)
         }
-        break
+        break;
       }
     }
   }

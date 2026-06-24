@@ -2,7 +2,8 @@ import fs from "fs";
 import path from "path";
 import "elysia";
 import { Elysia, Context } from "elysia";
-import { validate, logger, KeyPermission, db, ValidationRules, ValidationRule } from "@utils";
+import { validate, logger, KeyPermission, ValidationRules, ValidationRule } from "@utils";
+import { db } from "@skalfa/skalfa-orm";
 
 
 
@@ -188,7 +189,7 @@ export const controller = (app: Elysia) => app.derive(({ query, body, status }) 
 
     const relativePath = `/${folder}/${fileName}`
 
-    if(options) {
+    if(db && options) {
       const [storage] = await db("storages").insert({
         user_id     :  options?.owner_id ?? null,
         disk        :  disk,
@@ -222,11 +223,13 @@ export const controller = (app: Elysia) => app.derive(({ query, body, status }) 
   // ==================================>
   deleteFile: async (filePath: string) => {
     if (fs.existsSync(filePath)) { 
-      const record = await db("storages").where("path", filePath).first()
-      
-      if(record) {
-        await db("storages").where("id", record.id).delete()
-        await db("storage_permissions").where("storage_id", record.id).delete()
+      if (db) {
+        const record = await db("storages").where("path", filePath).first()
+        
+        if(record) {
+          await db("storages").where("id", record.id).delete()
+          await db("storage_permissions").where("storage_id", record.id).delete()
+        }
       }
 
       fs.unlinkSync(filePath); return true; 
