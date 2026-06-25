@@ -1,6 +1,6 @@
 {
   "name": "@skalfa/skalfa-api-core",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "Core framework engine and foundational utilities for the Skalfa API backend.",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
