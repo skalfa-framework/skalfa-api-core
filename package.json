@@ -1,6 +1,6 @@
 {
   "name": "@skalfa/skalfa-api-core",
-  "version": "1.0.8",
+  "version": "1.0.9",
   "description": "Core framework engine and foundational utilities for the Skalfa API backend.",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -13,7 +13,7 @@
     "utility"
   ],
   "author": "",
-  "license": "UNLICENSED",
+  "license": "MIT",
   "dependencies": {
     "@skalfa/skalfa-orm": "^1.0.0",
     "bcrypt": "^6.0.0",
