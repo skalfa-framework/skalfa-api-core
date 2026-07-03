@@ -16,22 +16,20 @@ declare module "knex" {
   }
 }
 
-const KnexTableBuilder = require("knex/lib/schema/tablebuilder");
+knex.TableBuilder.extend("softDelete", function (
+  this: any,
+  column = `deleted_at`
+) {
+  return this.timestamp(column).index();
+});
 
-KnexTableBuilder.prototype.foreignIdFor = function (
+knex.TableBuilder.extend("foreignIdFor", function (
   this: any,
   tableName: string,
   column = `${conversion.strSingular(tableName)}_id`
 ) {
   return this.bigInteger(column).unsigned().index();
-};
-
-KnexTableBuilder.prototype.softDelete = function (
-  this: any,
-  column = `deleted_at`
-) {
-  return this.timestamp(column).index();
-};
+});
 
 // =====================================>
 // ## Command: migrate
