@@ -20,7 +20,8 @@ knex.TableBuilder.extend("softDelete", function (
   this: any,
   column = `deleted_at`
 ) {
-  return this.timestamp(column).index();
+  const table = this as any;
+  return table.timestamp(column).index();
 });
 
 knex.TableBuilder.extend("foreignIdFor", function (
@@ -28,8 +29,10 @@ knex.TableBuilder.extend("foreignIdFor", function (
   tableName: string,
   column = `${conversion.strSingular(tableName)}_id`
 ) {
-  return this.bigInteger(column).unsigned().index();
+  const table = this as any;
+  return table.bigInteger(column).unsigned().index();
 });
+
 
 // =====================================>
 // ## Command: migrate
