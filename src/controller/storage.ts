@@ -31,7 +31,10 @@ export async function uploadFile(
   const relativePath = `/${folder}/${fileName}`;
 
   if (db && options) {
-    const [storage] = await db("storages").insert({
+    const isMySql = db.client?.config?.client?.includes?.('mysql')
+    let storageId: number
+
+    const insertData = {
       user_id     :  options?.owner_id ?? null,
       disk        :  disk,
       path        :  relativePath,
@@ -39,11 +42,21 @@ export async function uploadFile(
       filetype    :  file.type,
       filesize    :  buffer.length,
       created_at  :  new Date(),
-    }).returning(["id"]);
+    }
+
+    if (isMySql) {
+      const [insertId] = await db("storages").insert(insertData)
+
+      storageId = insertId
+    } else {
+      const [storage] = await db("storages").insert(insertData).returning(["id"])
+
+      storageId = storage.id
+    }
 
     if (options?.permissions?.length) {
       const permissions = options.permissions.map(p => ({
-        storage_id  :  storage.id,
+        storage_id  :  storageId,
         user_id     :  p.user_id ?? null,
         role_id     :  p.role_id ?? null,
         created_at  :  new Date(),

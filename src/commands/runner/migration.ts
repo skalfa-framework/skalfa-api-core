@@ -1,31 +1,33 @@
 import fs from "fs";
 import path from "path";
-import knex, { Knex } from "knex";
+import { Knex } from "knex";
 import { Command } from "commander";
 import { conversion, logger } from "@utils";
 import { runSeeder } from "./seeder";
 
+const knex = require("knex");
+
 declare module "knex" {
   namespace Knex {
-    interface CreateTableBuilder {
+    interface TableBuilder {
       foreignIdFor(tableName: string, column?: string): Knex.ColumnBuilder;
       softDelete(column?: string): Knex.ColumnBuilder;
     }
   }
 }
 
-const TableBuilder = require("knex/lib/schema/tablebuilder");
+const KnexTableBuilder = require("knex/lib/schema/tablebuilder");
 
-TableBuilder.prototype.foreignIdFor = function (
-  this: Knex.CreateTableBuilder,
+KnexTableBuilder.prototype.foreignIdFor = function (
+  this: any,
   tableName: string,
   column = `${conversion.strSingular(tableName)}_id`
 ) {
   return this.bigInteger(column).unsigned().index();
 };
 
-TableBuilder.prototype.softDelete = function (
-  this: Knex.CreateTableBuilder,
+KnexTableBuilder.prototype.softDelete = function (
+  this: any,
   column = `deleted_at`
 ) {
   return this.timestamp(column).index();

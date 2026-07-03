@@ -14,16 +14,30 @@ export async function createAccessToken(userId: number, req: Request, permission
     permissions = await getUserPermissions(userId)
   }
 
-  const [row] = await db("user_access_tokens").insert({
+  const isMySql = db.client?.config?.client?.includes?.('mysql')
+  let tokenId: number
+
+  const insertData = {
     user_id      :  userId,
     token        :  hash,
     agent        :  agent,
     permissions  :  JSON.stringify(permissions),
     created_at   :  new Date(),
-  }).returning(["id"])
+  }
+
+  if (isMySql) {
+    const [insertId] = await db("user_access_tokens").insert(insertData)
+
+    tokenId = insertId
+  } else {
+    const [row] = await db("user_access_tokens").insert(insertData).returning(["id"])
+
+    tokenId = row.id
+  }
 
   return {
-    token    :  `${row.id}|${plain}`,
-    tokenId  :  row.id,
+    token    :  `${tokenId}|${plain}`,
+    tokenId  :  tokenId,
   }
+
 }

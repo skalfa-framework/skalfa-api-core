@@ -25,16 +25,28 @@ export const notification = {
     if (userIds.length === 0) return;
 
     try {
-      const notificationRecord = await db.transaction(async (trx) => {
-        const [n] = await trx('notifications')
-          .insert({
-            title     :  payload.title,
-            body      :  payload.body || "",
-            type      :  payload.type || "",
-            redirect  :  payload.redirect || "",
-            data      :  payload.data ?? {},
-          })
-          .returning('*');
+      const notificationRecord = await db.transaction(async (trx: any) => {
+
+        const isMySql = trx.client?.config?.client?.includes?.('mysql')
+
+        const insertData = {
+          title     :  payload.title,
+          body      :  payload.body || "",
+          type      :  payload.type || "",
+          redirect  :  payload.redirect || "",
+          data      :  payload.data ?? {},
+        }
+
+        let n: any
+        if (isMySql) {
+          const [insertId] = await trx('notifications').insert(insertData)
+
+          n = await trx('notifications').where('id', insertId).first()
+        } else {
+          const [r] = await trx('notifications').insert(insertData).returning('*')
+
+          n = r
+        }
 
         await trx('notification_users').insert(
           userIds.map((uid) => ({
