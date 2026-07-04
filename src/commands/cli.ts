@@ -1,6 +1,7 @@
 import fs from "fs";
 import path from "path";
 import { Command } from "commander";
+import { spawn } from "child_process";
 
 import { makeControllerCommand } from "./make/basic-controller";
 import { makeSkalfaControllerCommand } from "./make/skalfa-controller";
@@ -75,5 +76,59 @@ export function runCli() {
     program.addCommand(daMigrateFreshCommand);
   }
 
+  program.addCommand(devCommand);
+  program.addCommand(watchCommand);
+  program.addCommand(startCommand);
+  program.addCommand(testCommand);
+  program.addCommand(lintCommand);
+
   program.parse(process.argv);
 }
+
+function getPackageManager(): string {
+  const userAgent = process.env.npm_config_user_agent || "";
+  if (userAgent.includes("yarn")) return "yarn";
+  if (userAgent.includes("pnpm")) return "pnpm";
+  if (userAgent.includes("bun")) return "bun";
+  return "npm";
+}
+
+function executeCommand(commandLine: string): void {
+  const child = spawn(commandLine, { stdio: "inherit", shell: true });
+  child.on("exit", (code) => {
+    process.exit(code || 0);
+  });
+}
+
+export const devCommand = new Command("dev")
+  .description("Start development server")
+  .action(() => {
+    const pm = getPackageManager();
+    executeCommand(`concurrently --raw "${pm} run watch" "${pm} run skalfa watch:barrels"`);
+  });
+
+export const watchCommand = new Command("watch")
+  .description("Start app watcher")
+  .action(() => {
+    executeCommand("bun run --watch app/app.ts");
+  });
+
+export const startCommand = new Command("start")
+  .description("Start server")
+  .action(() => {
+    executeCommand("bun run app/app.ts");
+  });
+
+export const testCommand = new Command("test")
+  .description("Run typescript compiler check")
+  .action(() => {
+    const pm = getPackageManager();
+    executeCommand(pm === "bun" ? "bun tsc --noEmit" : "tsc --noEmit");
+  });
+
+export const lintCommand = new Command("lint")
+  .description("Run eslint check")
+  .action(() => {
+    const pm = getPackageManager();
+    executeCommand(pm === "bun" ? "bunx eslint app/* database/*" : "eslint app/* database/*");
+  });
