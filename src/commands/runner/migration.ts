@@ -16,22 +16,30 @@ declare module "knex" {
   }
 }
 
-knex.TableBuilder.extend("softDelete", function (
-  this: any,
-  column = `deleted_at`
-) {
-  const table = this as any;
-  return table.timestamp(column).index();
-});
+try {
+  knex.TableBuilder.extend("softDelete", function (
+    this: any,
+    column = `deleted_at`
+  ) {
+    const table = this as any;
+    return table.timestamp(column).index();
+  });
+} catch (e: any) {
+  if (!e.message?.includes("Can't extend")) throw e
+}
 
-knex.TableBuilder.extend("foreignIdFor", function (
-  this: any,
-  tableName: string,
-  column = `${conversion.strSingular(tableName)}_id`
-) {
-  const table = this as any;
-  return table.bigInteger(column).unsigned().index();
-});
+try {
+  knex.TableBuilder.extend("foreignIdFor", function (
+    this: any,
+    tableName: string,
+    column = `${conversion.strSingular(tableName)}_id`
+  ) {
+    const table = this as any;
+    return table.bigInteger(column).unsigned().index();
+  });
+} catch (e: any) {
+  if (!e.message?.includes("Can't extend")) throw e
+}
 
 
 // =====================================>
