@@ -120,11 +120,14 @@ function createPermission(keys: KeyPermission[]) {
     },
 
     guard(c: ControllerContext) {
-      const permissions = new Set(c.permissions || [])
-
-      const ok = this.keys.some(k => permissions?.has(k))
-      if (!ok) {
-        c.responseForbidden()
+      if(process.env.AUTH_PERMISSION === "true") {
+        const permissions = new Set(c.permissions || [])
+  
+        const ok = this.keys.some(k => permissions?.has(k))
+  
+        if (!ok) {
+          c.responseForbidden()
+        }
       }
     }
   }
