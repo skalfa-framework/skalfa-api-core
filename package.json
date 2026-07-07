@@ -1,17 +1,13 @@
 {
   "name": "@skalfa/skalfa-api-core",
-  "version": "1.0.19",
-  "description": "Core framework engine and foundational utilities for the Skalfa API backend.",
+  "version": "1.0.20",
+  "description": "Core and Foundational utilities for the Skalfa API Framework.",
+  "keywords": ["skalfa", "skalfa-api", "skalfa-api-core", "bun-framework", "elysia-framework"],
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
-    "build": "tsc --ignoreDeprecations 6.0"
+    "build": "tsc"
   },
-  "keywords": [
-    "aluna",
-    "core",
-    "utility"
-  ],
   "author": "",
   "license": "MIT",
   "dependencies": {

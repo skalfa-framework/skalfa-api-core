@@ -13,7 +13,7 @@ export const Auth = (app: Elysia) => app.derive(async ({ request }) => {
 
   return {
     user: result.user,
-    permissions: result.permissions,
+    permissions: result.token.permissions,
     token: result.token,
   }
 })
