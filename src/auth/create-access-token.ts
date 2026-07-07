@@ -10,7 +10,7 @@ export async function createAccessToken(userId: number, req: Request, permission
   const agent  =  generateAgentId(req)
 
   let permissions: string[] = []
-  if (AUTH_PERMISSION && permission) {
+  if (AUTH_PERMISSION || permission) {
     permissions = await getUserPermissions(userId)
   }
 

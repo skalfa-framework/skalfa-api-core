@@ -8,7 +8,7 @@ import { revalidateUserPermissions } from './revalidate-user-permissions'
 import { revalidateUserPermissionsByRole } from './revalidate-user-permissions-by-role'
 
 export const TOKEN_PLAIN_LENGTH  =  20
-export const AUTH_PERMISSION     =  process.env.AUTH_CACHE  ===  "true"
+export const AUTH_PERMISSION     =  process.env.AUTH_PERMISSION  ===  "true"
 export const AUTH_CACHE          =  process.env.AUTH_CACHE  ===  "true"
 export const AUTH_CACHE_TTL      =  Number(process.env.AUTH_CACHE_TTL || 600)
 
