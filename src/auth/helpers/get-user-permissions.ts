@@ -6,7 +6,7 @@ export async function getUserPermissions(userId: number): Promise<string[]> {
   const query = db("user_permissions").where("user_id", userId)
 
   if (roleIds.length > 0) {
-    query.orWhereIn("user_role_id", roleIds)
+    query.orWhereIn("role_id", roleIds)
   }
 
   const rows = await query.pluck("permissions")
