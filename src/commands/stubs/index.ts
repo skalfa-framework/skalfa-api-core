@@ -1,5 +1,7 @@
 export const basicControllerStub = `import type { ControllerContext } from "elysia"
 
+
+
 export class {{ name }} {
     // ========================================>
     // ## Display a listing of the resource.
@@ -35,22 +37,28 @@ export class {{ name }} {
 
 export const basicMigrationStub = `import type { Knex } from "knex"
 
+
+
 export async function up(knex: Knex): Promise<void> {
-  await knex.schema.createTable("{{ tableName }}", (table) => {
-    table.bigIncrements('id').primary()
-    // your table schema
-    table.timestamps(true, true)
-    table.softDelete()
-  })
+    await knex.schema.createTable("{{ tableName }}", (table) => {
+        table.bigIncrements('id').primary()
+        // your table schema
+        table.timestamps(true, true)
+        table.softDelete()
+    })
 }`;
 
 export const basicModelStub = `import { Model } from '@utils'
+
+
 
 export class {{ name }} extends Model {
     // something amazing
 }`;
 
 export const basicSeederStub = `import { {{ model }} } from "@models";
+
+
 
 export default async function {{ name }}() {
     // =========================>
@@ -75,14 +83,16 @@ export const blueprintStub = `[
 
 export const daMigrationStub = `import { DAMigration } from "@utils"
 
+
+
 export default class {{ className }} extends DAMigration {
-  async up() { 
-    await this.createTable("{{ tableName }}",(table) => {
-      table.uuid()
-    }, {
-      engine: "MergeTree",
-    })
-  }
+    async up() { 
+        await this.createTable("{{ tableName }}",(table) => {
+            table.uuid()
+        }, {
+            engine: "MergeTree",
+        })
+    }
 }
 `;
 
@@ -185,13 +195,15 @@ export class {{ name }} {
 export const skalfaMigrationStub = `{{ marker }}
 import type { Knex } from "knex"
 
+
+
 export async function up(knex: Knex): Promise<void> {
-  await knex.schema.createTable("{{ tableName }}", (table) => {
-    table.bigIncrements('id').primary()
+    await knex.schema.createTable("{{ tableName }}", (table) => {
+        table.bigIncrements('id').primary()
 {{ schemas }}
-    table.timestamps(true, true)
-    table.softDelete()
-  })
+        table.timestamps(true, true)
+        table.softDelete()
+    })
 
 {{ pivot }}
 }`;
@@ -200,9 +212,11 @@ export const skalfaModelStub = `{{ marker }}
 import { Model, SoftDelete{{ import_utils }} } from '@utils'
 {{ import }}
 
+
+
 export class {{ name }} extends Model {
     // =====================>
-    // ## Field
+    // ## Fields
     // =====================>
 {{ fields }}
 
@@ -217,20 +231,16 @@ export class {{ name }} extends Model {
 
 
     // =====================>
-    // ## Attribute
+    // ## Services
     // =====================>
 {{ attributes }}
-
-
-    // =====================>
-    // ## Hook
-    // =====================>
-
 }
 `;
 
 export const skalfaSeederStub = `{{ marker }}
 import { {{ model }} } from "@models";
+
+
 
 export default async function {{ name }}Seeder() {
     // =========================>
@@ -245,34 +255,40 @@ export default async function {{ name }}Seeder() {
 
 export const mailStub = `import { renderMailTemplate, sendMail } from "@utils"
 
-export async function {{ name }}Mail(to: string) {
-  const content = renderMailTemplate("{{ name }}", {
-      title: "{{ title }}",
-  })
 
-  const send = await sendMail({
-      subject: "{{ title }}",
-      to: to,
-      content: content
-  })
-  
-  return send;
+
+export async function {{ name }}Mail(to: string) {
+    const content = renderMailTemplate("{{ name }}", {
+        title  :  "{{ title }}",
+    })
+
+    const send = await sendMail({
+        subject  :  "{{ title }}",
+        to       :  to,
+        content  :  content
+    })
+    
+    return send;
 }
 `;
 
 export const notificationStub = `import { queue } from "@utils";
 
+
+
 export async function {{ name }}Notification(payload: Record<string,any>) {
-  await queue.add('notification', { payload })
+    await queue.add('notification', { payload })
 }
 `;
 
 export const queueStub = `import { queue } from '@utils'
 
+
+
 export const {{ name }}QueueWorker = () => {
-  queue.worker("{{ worker_name }}", async (payload) => {
-    
-  })
+    queue.worker("{{ worker_name }}", async (payload) => {
+
+    })
 }
 `;
 
@@ -281,6 +297,8 @@ import { api, middleware } from '@utils'
 import { 
 
 } from '@controllers'
+
+
 
 export const {{ name }}Routes = (app: Elysia) => app.group('/{{ path }}', (route) => {
 

@@ -109,7 +109,7 @@ export async function migrationGeneration(
     migrationFields.push(columnDef);
   }
 
-  const migrationSchema = migrationFields.map((f) => `    ${f}`).join("\n");
+  const migrationSchema = migrationFields.map((f) => `        ${f}`).join("\n");
 
   let stub = skalfaMigrationStub;
 
