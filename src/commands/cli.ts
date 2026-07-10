@@ -104,7 +104,7 @@ export const devCommand = new Command("dev")
   .description("Start development server")
   .action(() => {
     const pm = getPackageManager();
-    executeCommand(`concurrently --raw "${pm} run watch" "${pm} run skalfa watch:barrels"`);
+    executeCommand(`concurrently --raw "${pm} run watch" "${pm} run skalfa watch:barrels" "skalfa lang dev --quiet"`);
   });
 
 export const watchCommand = new Command("watch")

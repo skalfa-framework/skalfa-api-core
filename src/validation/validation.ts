@@ -1,5 +1,6 @@
 import validator from "validator"
 import { db } from "@skalfa/skalfa-orm";
+import { getLang } from "@skalfa/skalfa-lang";
 
 
 
@@ -80,6 +81,7 @@ export async function validate(
 
 
 async function checkRules({ field, value, rules, data, errors } : { field: string, value: any, rules: ValidationRule[], data: any, errors: Record<string, string[]> }) {
+  const l = getLang();
   for (const rule of rules) {
     const [name, param] = rule.split(":") as [string, string | undefined]
 
@@ -87,7 +89,8 @@ async function checkRules({ field, value, rules, data, errors } : { field: strin
       // === BASIC ===
       case "required":
         if (validator.isEmpty(String(value).trim())) {
-          addError(errors, field, `${field} wajib diisi`)
+          const msg = l.validation?.required ? l.validation.required() : `${field} wajib diisi`;
+          addError(errors, field, msg);
         }
         break
 
@@ -95,7 +98,8 @@ async function checkRules({ field, value, rules, data, errors } : { field: strin
       case "text":
         if (!value) break
         if (typeof value !== "string") {
-          addError(errors, field, `${field} harus berupa string`)
+          const msg = l.validation?.string ? l.validation.string() : `${field} harus berupa string`;
+          addError(errors, field, msg);
         }
         break
 
@@ -103,34 +107,39 @@ async function checkRules({ field, value, rules, data, errors } : { field: strin
       case "number":
         if (!value) break
         if (!validator.isNumeric(String(value))) {
-          addError(errors, field, `${field} harus berupa angka`)
+          const msg = l.validation?.numeric ? l.validation.numeric() : `${field} harus berupa angka`;
+          addError(errors, field, msg);
         }
         break
 
       case "boolean":
         if (!(value === true || value === false || value === "true" || value === "false" || value === 1 || value === 0)) {
-          addError(errors, field, `${field} harus berupa boolean`)
+          const msg = l.validation?.boolean ? l.validation.boolean() : `${field} harus berupa boolean`;
+          addError(errors, field, msg);
         }
         break
 
       case "email":
         if (!value) break
         if (!validator.isEmail(String(value))) {
-          addError(errors, field, `${field} harus berupa email yang valid`)
+          const msg = l.validation?.email ? l.validation.email() : `${field} harus berupa email yang valid`;
+          addError(errors, field, msg);
         }
         break
 
       case "url":
         if (!value) break
         if (!validator.isURL(String(value))) {
-          addError(errors, field, `${field} harus berupa URL yang valid`)
+          const msg = l.validation?.url ? l.validation.url() : `${field} harus berupa URL yang valid`;
+          addError(errors, field, msg);
         }
         break
 
       case "date":
         if (!value) break
         if (!validator.isDate(String(value))) {
-          addError(errors, field, `${field} harus berupa tanggal yang valid`)
+          const msg = l.validation?.date ? l.validation.date() : `${field} harus berupa tanggal yang valid`;
+          addError(errors, field, msg);
         }
         break
 
@@ -139,7 +148,8 @@ async function checkRules({ field, value, rules, data, errors } : { field: strin
         if (!value) break
         const min = parseInt(param!)
         if (!validator.isLength(String(value), { min })) {
-          addError(errors, field, `${field} minimal ${min} karakter`)
+          const msg = l.validation?.min ? l.validation.min({ min }) : `${field} minimal ${min} karakter`;
+          addError(errors, field, msg);
         }
         break
       }
@@ -148,7 +158,8 @@ async function checkRules({ field, value, rules, data, errors } : { field: strin
         if (!value) break
         const max = parseInt(param!)
         if (!validator.isLength(String(value), { max })) {
-          addError(errors, field, `${field} maksimal ${max} karakter`)
+          const msg = l.validation?.max ? l.validation.max({ max }) : `${field} maksimal ${max} karakter`;
+          addError(errors, field, msg);
         }
         break
       }
@@ -157,7 +168,8 @@ async function checkRules({ field, value, rules, data, errors } : { field: strin
         if (!value) break
         const [minVal, maxVal] = param!.split(",").map(Number)
         if (!validator.isLength(String(value), { min: minVal, max: maxVal })) {
-          addError(errors, field, `${field} harus antara ${minVal} - ${maxVal} karakter`)
+          const msg = l.validation?.min_max ? l.validation.min_max({ min: minVal, max: maxVal }) : `${field} harus antara ${minVal} - ${maxVal} karakter`;
+          addError(errors, field, msg);
         }
         break
       }
@@ -167,7 +179,8 @@ async function checkRules({ field, value, rules, data, errors } : { field: strin
         if (!value) break
         const allowed = param!.split(",")
         if (!allowed.includes(String(value))) {
-          addError(errors, field, `${field} harus salah satu dari: ${allowed.join(", ")}`)
+          const msg = l.validation?.in ? l.validation.in({ keywords: allowed.join(", ") }) : `${field} harus salah satu dari: ${allowed.join(", ")}`;
+          addError(errors, field, msg);
         }
         break
       }
@@ -176,7 +189,8 @@ async function checkRules({ field, value, rules, data, errors } : { field: strin
         if (!value) break
         const notAllowed = param!.split(",")
         if (notAllowed.includes(String(value))) {
-          addError(errors, field, `${field} tidak boleh salah satu dari: ${notAllowed.join(", ")}`)
+          const msg = l.validation?.not_in ? l.validation.not_in({ keywords: notAllowed.join(", ") }) : `${field} tidak boleh salah satu dari: ${notAllowed.join(", ")}`;
+          addError(errors, field, msg);
         }
         break
       }
@@ -184,7 +198,8 @@ async function checkRules({ field, value, rules, data, errors } : { field: strin
       case "array": {
         if (!value) break
         if (!Array.isArray(value)) {
-          addError(errors, field, `${field} harus berupa array`)
+          const msg = l.validation?.array ? l.validation.array() : `${field} harus berupa array`;
+          addError(errors, field, msg);
         }
         break
       }
@@ -192,19 +207,22 @@ async function checkRules({ field, value, rules, data, errors } : { field: strin
       // === RELATIONAL ===
       case "confirmed":
         if (value !== getNestedValue(data, `${field}_confirmation`)) {
-          addError(errors, field, `${field} tidak sama dengan konfirmasi`)
+          const msg = l.validation?.confirmed ? l.validation.confirmed() : `${field} tidak sama dengan konfirmasi`;
+          addError(errors, field, msg);
         }
         break
 
       case "same":
         if (value !== getNestedValue(data, param!)) {
-          addError(errors, field, `${field} harus sama dengan ${param}`)
+          const msg = l.validation?.same ? l.validation.same({ other: param }) : `${field} harus sama dengan ${param}`;
+          addError(errors, field, msg);
         }
         break
 
       case "different":
         if (value === getNestedValue(data, param!)) {
-          addError(errors, field, `${field} harus berbeda dengan ${param}`)
+          const msg = l.validation?.different ? l.validation.different({ other: param }) : `${field} harus berbeda dengan ${param}`;
+          addError(errors, field, msg);
         }
         break
 
@@ -214,10 +232,11 @@ async function checkRules({ field, value, rules, data, errors } : { field: strin
         try {
           const pattern = new RegExp(param!)
           if (!pattern.test(String(value))) {
-            addError(errors, field, `${field} tidak sesuai format`)
+            const msg = l.validation?.regex ? l.validation.regex() : `${field} tidak sesuai format`;
+            addError(errors, field, msg);
           }
         } catch {
-          addError(errors, field, `Regex rule untuk ${field} tidak valid`)
+          addError(errors, field, `Regex rule untuk ${field} tidak valid`);
         }
         break
 
@@ -234,7 +253,8 @@ async function checkRules({ field, value, rules, data, errors } : { field: strin
 
         const existing = await query.first()
         if (existing) {
-          addError(errors, field, `${field} sudah digunakan`)
+          const msg = l.validation?.unique ? l.validation.unique() : `${field} sudah digunakan`;
+          addError(errors, field, msg);
         }
         break
       }
@@ -250,7 +270,8 @@ async function checkRules({ field, value, rules, data, errors } : { field: strin
 
         const existing = await query.first()
         if (!existing) {
-          addError(errors, field, `${field} tidak ditemukan di ${table}`)
+          const msg = l.validation?.exists ? l.validation.exists({ table }) : `${field} tidak ditemukan di ${table}`;
+          addError(errors, field, msg);
         }
         break
       }
