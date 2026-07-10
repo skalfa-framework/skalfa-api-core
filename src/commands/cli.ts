@@ -100,11 +100,30 @@ function executeCommand(commandLine: string): void {
   });
 }
 
+import os from "os";
+
+function getGlobalSkalfa(): string {
+  try {
+    const { execSync } = require("child_process");
+    const cmd = os.platform() === "win32" ? "where.exe skalfa" : "which skalfa";
+    const paths = execSync(cmd, { stdio: "pipe" }).toString().trim().split(/\r?\n/);
+    for (const p of paths) {
+      const normalized = p.trim();
+      if (normalized && !normalized.includes("node_modules") && !normalized.includes(process.cwd())) {
+        return normalized;
+      }
+    }
+  } catch {}
+  return "skalfa";
+}
+
 export const devCommand = new Command("dev")
   .description("Start development server")
   .action(() => {
     const pm = getPackageManager();
-    executeCommand(`concurrently --raw "${pm} run watch" "${pm} run skalfa watch:barrels" "skalfa lang dev --quiet"`);
+    const globalSkalfa = getGlobalSkalfa();
+    const escapedSkalfa = globalSkalfa.includes(" ") ? `\\"${globalSkalfa}\\"` : globalSkalfa;
+    executeCommand(`concurrently --raw "${pm} run watch" "${pm} run skalfa watch:barrels" "${escapedSkalfa} lang dev --quiet"`);
   });
 
 export const watchCommand = new Command("watch")
