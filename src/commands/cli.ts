@@ -2,6 +2,7 @@ import fs from "fs";
 import path from "path";
 import { Command } from "commander";
 import { spawn } from "child_process";
+import { runBuild as runBuildLang, startDev as startDevLang } from "@skalfa/skalfa-lang/compiler";
 
 import { makeControllerCommand } from "./make/basic-controller";
 import { makeSkalfaControllerCommand } from "./make/skalfa-controller";
@@ -81,6 +82,7 @@ export function runCli() {
   program.addCommand(startCommand);
   program.addCommand(testCommand);
   program.addCommand(lintCommand);
+  program.addCommand(langCommand);
 
   program.parse(process.argv);
 }
@@ -100,30 +102,30 @@ function executeCommand(commandLine: string): void {
   });
 }
 
-import os from "os";
 
-function getGlobalSkalfa(): string {
-  try {
-    const { execSync } = require("child_process");
-    const cmd = os.platform() === "win32" ? "where.exe skalfa" : "which skalfa";
-    const paths = execSync(cmd, { stdio: "pipe" }).toString().trim().split(/\r?\n/);
-    for (const p of paths) {
-      const normalized = p.trim();
-      if (normalized && !normalized.includes("node_modules") && !normalized.includes(process.cwd())) {
-        return normalized;
-      }
+
+export const langCommand = new Command("lang")
+  .description("Manage and compile type-safe translation resources for @skalfa/lang.")
+  .argument("<action>", "action to perform: build, dev")
+  .option("-q, --quiet", "Run in quiet mode (suppress verbose logs)")
+  .action(async (action: string, options: { quiet?: boolean }) => {
+    if (action === "build") {
+      const success = await runBuildLang(process.cwd(), false, !!options.quiet);
+      if (!success) process.exit(1);
+      process.exit(0);
+    } else if (action === "dev") {
+      await startDevLang(process.cwd(), !!options.quiet);
+    } else {
+      console.error(`Unknown action "${action}". Use "build" or "dev".`);
+      process.exit(1);
     }
-  } catch {}
-  return "skalfa";
-}
+  });
 
 export const devCommand = new Command("dev")
   .description("Start development server")
   .action(() => {
     const pm = getPackageManager();
-    const globalSkalfa = getGlobalSkalfa();
-    const escapedSkalfa = globalSkalfa.includes(" ") ? `\\"${globalSkalfa}\\"` : globalSkalfa;
-    executeCommand(`concurrently --raw "${pm} run watch" "${pm} run skalfa watch:barrels" "${escapedSkalfa} lang dev --quiet"`);
+    executeCommand(`concurrently --raw "${pm} run watch" "${pm} run skalfa watch:barrels" "${pm} run skalfa lang dev --quiet"`);
   });
 
 export const watchCommand = new Command("watch")
