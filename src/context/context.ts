@@ -1,23 +1,24 @@
 import { AsyncLocalStorage } from 'node:async_hooks'
 
-export type AppContext = { 
-  user_id  ?:  number,
+export interface AppContext {
+  user_id?: number
 }
 
 const storage = new AsyncLocalStorage<AppContext>()
 
 export const context = {
-  // =====================================>
-  // ## Context: run a function within context
-  // =====================================>
-  run<T>(ctx: AppContext, fn: () => T) {
-    return storage.run(ctx, fn)
+  init(ctx: AppContext) {
+    storage.enterWith(ctx)
   },
 
-  // =====================================>
-  // ## Context: retrieve context property value
-  // =====================================>
   get<K extends keyof AppContext>(key: K): AppContext[K] {
     return storage.getStore()?.[key]
   },
+
+  set<K extends keyof AppContext>(key: K, value: AppContext[K]) {
+    const store = storage.getStore()
+    if (store) {
+      store[key] = value
+    }
+  }
 }
