@@ -52,10 +52,11 @@ export interface ValidationResult {
 // ## Validation: validate request data
 // =====================================>
 export async function validate(
-  data   :  Record<string, any>,
-  rules  :  ValidationRules
+  rawData: Record<string, any>,
+  rules  : ValidationRules
 ): Promise<ValidationResult> {
   const errors: Record<string, string[]> = {}
+  const data = expandData(rawData || {})
 
   for (const field in rules) {
     const fieldRules = normalizeRules(rules[field])
@@ -68,7 +69,7 @@ export async function validate(
       continue
     }
 
-    const value = getNestedValue(data, field) ?? ""
+    const value = getNestedValue(data, field)
 
     await checkRules({ field, value, rules: fieldRules, data, errors })
   }
@@ -88,7 +89,7 @@ async function checkRules({ field, value, rules, data, errors } : { field: strin
     switch (name) {
       // === BASIC ===
       case "required":
-        if (validator.isEmpty(String(value).trim())) {
+        if (value === undefined || value === null || (typeof value === "string" && validator.isEmpty(value.trim())) || (Array.isArray(value) && value.length === 0)) {
           const msg = l.validation?.required ? l.validation.required() : `${field} wajib diisi`;
           addError(errors, field, msg);
         }
@@ -96,7 +97,7 @@ async function checkRules({ field, value, rules, data, errors } : { field: strin
 
       case "string":
       case "text":
-        if (!value) break
+        if (value === undefined || value === null || value === "") break
         if (typeof value !== "string") {
           const msg = l.validation?.string ? l.validation.string() : `${field} harus berupa string`;
           addError(errors, field, msg);
@@ -105,7 +106,7 @@ async function checkRules({ field, value, rules, data, errors } : { field: strin
 
       case "numeric":
       case "number":
-        if (!value) break
+        if (value === undefined || value === null || value === "") break
         if (!validator.isNumeric(String(value))) {
           const msg = l.validation?.numeric ? l.validation.numeric() : `${field} harus berupa angka`;
           addError(errors, field, msg);
@@ -113,6 +114,7 @@ async function checkRules({ field, value, rules, data, errors } : { field: strin
         break
 
       case "boolean":
+        if (value === undefined || value === null || value === "") break
         if (!(value === true || value === false || value === "true" || value === "false" || value === 1 || value === 0)) {
           const msg = l.validation?.boolean ? l.validation.boolean() : `${field} harus berupa boolean`;
           addError(errors, field, msg);
@@ -120,7 +122,7 @@ async function checkRules({ field, value, rules, data, errors } : { field: strin
         break
 
       case "email":
-        if (!value) break
+        if (value === undefined || value === null || value === "") break
         if (!validator.isEmail(String(value))) {
           const msg = l.validation?.email ? l.validation.email() : `${field} harus berupa email yang valid`;
           addError(errors, field, msg);
@@ -128,7 +130,7 @@ async function checkRules({ field, value, rules, data, errors } : { field: strin
         break
 
       case "url":
-        if (!value) break
+        if (value === undefined || value === null || value === "") break
         if (!validator.isURL(String(value))) {
           const msg = l.validation?.url ? l.validation.url() : `${field} harus berupa URL yang valid`;
           addError(errors, field, msg);
@@ -136,7 +138,7 @@ async function checkRules({ field, value, rules, data, errors } : { field: strin
         break
 
       case "date":
-        if (!value) break
+        if (value === undefined || value === null || value === "") break
         if (!validator.isDate(String(value))) {
           const msg = l.validation?.date ? l.validation.date() : `${field} harus berupa tanggal yang valid`;
           addError(errors, field, msg);
@@ -145,9 +147,14 @@ async function checkRules({ field, value, rules, data, errors } : { field: strin
 
       // === LENGTH ===
       case "min": {
-        if (!value) break
+        if (value === undefined || value === null || value === "") break
         const min = parseInt(param!)
-        if (!validator.isLength(String(value), { min })) {
+        if (Array.isArray(value)) {
+          if (value.length < min) {
+            const msg = l.validation?.min ? l.validation.min({ min }) : `${field} minimal ${min} item`;
+            addError(errors, field, msg);
+          }
+        } else if (!validator.isLength(String(value), { min })) {
           const msg = l.validation?.min ? l.validation.min({ min }) : `${field} minimal ${min} karakter`;
           addError(errors, field, msg);
         }
@@ -155,9 +162,14 @@ async function checkRules({ field, value, rules, data, errors } : { field: strin
       }
 
       case "max": {
-        if (!value) break
+        if (value === undefined || value === null || value === "") break
         const max = parseInt(param!)
-        if (!validator.isLength(String(value), { max })) {
+        if (Array.isArray(value)) {
+          if (value.length > max) {
+            const msg = l.validation?.max ? l.validation.max({ max }) : `${field} maksimal ${max} item`;
+            addError(errors, field, msg);
+          }
+        } else if (!validator.isLength(String(value), { max })) {
           const msg = l.validation?.max ? l.validation.max({ max }) : `${field} maksimal ${max} karakter`;
           addError(errors, field, msg);
         }
@@ -165,9 +177,14 @@ async function checkRules({ field, value, rules, data, errors } : { field: strin
       }
 
       case "between": {
-        if (!value) break
+        if (value === undefined || value === null || value === "") break
         const [minVal, maxVal] = param!.split(",").map(Number)
-        if (!validator.isLength(String(value), { min: minVal, max: maxVal })) {
+        if (Array.isArray(value)) {
+          if (value.length < minVal || value.length > maxVal) {
+            const msg = l.validation?.min_max ? l.validation.min_max({ min: minVal, max: maxVal }) : `${field} harus antara ${minVal} - ${maxVal} item`;
+            addError(errors, field, msg);
+          }
+        } else if (!validator.isLength(String(value), { min: minVal, max: maxVal })) {
           const msg = l.validation?.min_max ? l.validation.min_max({ min: minVal, max: maxVal }) : `${field} harus antara ${minVal} - ${maxVal} karakter`;
           addError(errors, field, msg);
         }
@@ -176,7 +193,7 @@ async function checkRules({ field, value, rules, data, errors } : { field: strin
 
       // === SET MEMBERSHIP ===
       case "in": {
-        if (!value) break
+        if (value === undefined || value === null || value === "") break
         const allowed = param!.split(",")
         if (!allowed.includes(String(value))) {
           const msg = l.validation?.in ? l.validation.in({ keywords: allowed.join(", ") }) : `${field} harus salah satu dari: ${allowed.join(", ")}`;
@@ -186,7 +203,7 @@ async function checkRules({ field, value, rules, data, errors } : { field: strin
       }
 
       case "not_in": {
-        if (!value) break
+        if (value === undefined || value === null || value === "") break
         const notAllowed = param!.split(",")
         if (notAllowed.includes(String(value))) {
           const msg = l.validation?.not_in ? l.validation.not_in({ keywords: notAllowed.join(", ") }) : `${field} tidak boleh salah satu dari: ${notAllowed.join(", ")}`;
@@ -196,7 +213,7 @@ async function checkRules({ field, value, rules, data, errors } : { field: strin
       }
 
       case "array": {
-        if (!value) break
+        if (value === undefined || value === null || value === "") break
         if (!Array.isArray(value)) {
           const msg = l.validation?.array ? l.validation.array() : `${field} harus berupa array`;
           addError(errors, field, msg);
@@ -228,7 +245,7 @@ async function checkRules({ field, value, rules, data, errors } : { field: strin
 
       // === REGEX ===
       case "regex":
-        if (!value) break
+        if (value === undefined || value === null || value === "") break
         try {
           const pattern = new RegExp(param!)
           if (!pattern.test(String(value))) {
@@ -242,7 +259,7 @@ async function checkRules({ field, value, rules, data, errors } : { field: strin
 
       // === DATABASE VALIDATION ===
       case "unique": {
-        if (!value) break
+        if (value === undefined || value === null || value === "") break
         const [table, column, exceptId] = param!.split(",")
         const query = db.table(table).where(column, value)
         if (exceptId) query.whereNot("id", exceptId)
@@ -260,7 +277,7 @@ async function checkRules({ field, value, rules, data, errors } : { field: strin
       }
 
       case "exists": {
-        if (!value) break
+        if (value === undefined || value === null || value === "") break
         const [table, column] = param!.split(",")
         const query = db.table(table).where(column, value)
 
@@ -298,17 +315,16 @@ async function nestedValidation({ value, segments, rules, fieldPath, data, error
   const [segment, ...rest] = segments
 
   if (segment === "*") {
-    if (!Array.isArray(value)) {
-      addError(errors, fieldPath, `${fieldPath} harus berupa array`)
-
-      return
+    if (!Array.isArray(value) || value.length === 0) {
+      return;
     }
 
     for (let i = 0; i < value.length; i++) {
-      await nestedValidation({ value: value[i], segments: rest, rules, fieldPath: `${fieldPath}.${i}`, data, errors })
+      await nestedValidation({ value: value[i], segments: rest, rules, fieldPath: `${fieldPath}[${i}]`, data, errors })
     }
   } else {
-    await nestedValidation({ value: value?.[segment], segments: rest, rules, fieldPath: fieldPath ? `${fieldPath}.${segment}` : segment, data, errors})
+    const nextPath = fieldPath ? `${fieldPath}.${segment}` : segment
+    await nestedValidation({ value: value?.[segment], segments: rest, rules, fieldPath: nextPath, data, errors})
   }
 }
 
@@ -317,6 +333,55 @@ async function nestedValidation({ value, segments, rules, fieldPath, data, error
 // ==================================>
 // ## Validation helpers
 // ==================================>
+function expandData(data: Record<string, any>): Record<string, any> {
+  if (!data || typeof data !== "object") return data
+
+  const result: Record<string, any> = Array.isArray(data) ? [] : {}
+
+  for (const key in data) {
+    if (Object.prototype.hasOwnProperty.call(data, key)) {
+      setDeepValue(result, key, data[key])
+    }
+  }
+
+  return result
+}
+
+function setDeepValue(obj: any, path: string, value: any) {
+  if (!path) return
+
+  const normalizedPath = path
+    .replace(/\[(\d+)\]/g, '.$1')
+    .replace(/\["([^"]+)"\]/g, '.$1')
+    .replace(/\['([^']+)'\]/g, '.$1')
+
+  const parts = normalizedPath.split('.')
+  let current = obj
+
+  for (let i = 0; i < parts.length; i++) {
+    const part = parts[i]
+    const isLast = i === parts.length - 1
+
+    if (isLast) {
+      if (Array.isArray(current) && /^\d+$/.test(part)) {
+        current[parseInt(part, 10)] = value
+      } else {
+        current[part] = value
+      }
+    } else {
+      const nextPart = parts[i + 1]
+      const isNextNumber = /^\d+$/.test(nextPart)
+
+      const currentIdx = Array.isArray(current) && /^\d+$/.test(part) ? parseInt(part, 10) : part
+
+      if ((current as any)[currentIdx] === undefined || (current as any)[currentIdx] === null) {
+        (current as any)[currentIdx] = isNextNumber ? [] : {}
+      }
+      current = (current as any)[currentIdx]
+    }
+  }
+}
+
 function getNestedValue(obj: any, path: string): any {
   if (!obj || typeof obj !== "object") return undefined
 
