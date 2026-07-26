@@ -1,4 +1,4 @@
-import { readFileSync } from "fs";
+import { readFileSync, existsSync } from "fs";
 import { join } from "path";
 import nodemailer, { SentMessageInfo } from "nodemailer";
 import { logger } from "@utils";
@@ -56,10 +56,30 @@ export async function sendMail(options: {
 // =====================================>
 // ## Mail: Render mail template
 // =====================================>
-export function renderMailTemplate(template: string, options: Record<string, string>) {
-  const templateDir = join(import.meta.dir, "./../outputs/mails/templates");
+export function renderMailTemplate(
+  template: string,
+  options: Record<string, string>,
+  customDir?: string
+) {
+  const appTemplateDir = join(process.cwd(), "app", "outputs", "mails", "templates");
+  const coreTemplateDir = join(import.meta.dir, "./../outputs/mails/templates");
+
+  let templateDir = customDir;
+  if (!templateDir) {
+    if (existsSync(join(appTemplateDir, `${template}.mail.stub`))) {
+      templateDir = appTemplateDir;
+    } else if (existsSync(join(coreTemplateDir, `${template}.mail.stub`))) {
+      templateDir = coreTemplateDir;
+    } else {
+      templateDir = appTemplateDir;
+    }
+  }
 
   const contentPath = join(templateDir, `${template}.mail.stub`);
+  if (!existsSync(contentPath)) {
+    throw new Error(`Mail template '${template}.mail.stub' not found at: ${contentPath}`);
+  }
+
   let content = readFileSync(contentPath, "utf-8");
 
   for (const [key, value] of Object.entries(options)) {
@@ -67,7 +87,8 @@ export function renderMailTemplate(template: string, options: Record<string, str
     content = content.replace(regex, value);
   }
 
-  let layout = readFileSync(join(templateDir, "layout.mail.stub"), "utf-8");
+  const layoutPath = join(templateDir, "layout.mail.stub");
+  let layout = existsSync(layoutPath) ? readFileSync(layoutPath, "utf-8") : "{{content}}";
 
   const globalVars = {
     ...options,
