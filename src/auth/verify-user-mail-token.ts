@@ -4,12 +4,7 @@ import { db } from '@skalfa/skalfa-orm'
 export async function verifyUserMailToken(userId: number, token: string) {
   const hashedToken = crypto.createHash("sha256").update(token).digest("hex");
 
-  const record = await db.table("user_mail_tokens")
-    .where("user_id", userId)
-    .whereNull("used_at")
-    .orderBy("id", "desc")
-    .first();
-
+  const record = await db.table("user_mail_tokens").where("user_id", userId).whereNull("used_at").orderBy("id", "desc").first();
   if (!record) return false
 
   if (record.token !== hashedToken) return false;
