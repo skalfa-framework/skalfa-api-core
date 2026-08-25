@@ -17,6 +17,7 @@ import { migrateCommand, migrateFreshCommand } from "./runner/migration";
 import { seederCommand } from "./runner/seeder";
 import { blueprintCommand } from "./runner/blueprint/runner";
 import { generateDocsCommand } from "./runner/generate-docs";
+import { generateErdCommand } from "./runner/generate-erd";
 import { makeQueueCommand } from "./make/queue";
 import { makeMailCommand } from "./make/mail";
 import { makeNotificationCommand } from "./make/notification";
@@ -58,6 +59,7 @@ export function runCli() {
   program.addCommand(seederCommand);
   program.addCommand(blueprintCommand);
   program.addCommand(generateDocsCommand);
+  program.addCommand(generateErdCommand);
 
   if (hasMail) {
     program.addCommand(makeMailCommand);
